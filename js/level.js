@@ -1,8 +1,7 @@
 import * as THREE from './vendor/three.module.js';
+import { ARENDELLE_DEFS } from './levelData.js';
 
 const PLATFORM_COLORS = [0xf39c12, 0xe67e22, 0x1abc9c, 0x3498db, 0x9b59b6, 0xe74c3c, 0x2ecc71];
-const SNOW_COLORS = [0xf7fbfe, 0xd5e4f0, 0xe8f1f8, 0xc5d7e6, 0xf0f5f8, 0xb9cfe0];
-
 export const LEVELS = [
   { id: 'L01', label: 'Level 1', name: '沙漠', nameEn: 'Desert' },
   { id: 'L02', label: 'Level 2', name: '阿伦戴尔', nameEn: 'Arendelle' },
@@ -72,34 +71,6 @@ const L01_DEFS = [
   { z: 226, x: 0, y: 2.0, w: 8, d: 8, finish: true },
 ];
 
-/**
- * Arendelle. Same 3D fields as L01: x, top y, z, full size w/h/d, finish.
- * Optional ice / tilt / slideZ / hazards only affect this course.
- */
-const L02_DEFS = [
-  { z: 0, x: 0, y: 0, w: 8, d: 10 },
-  { z: 12, x: 0, y: 0.15, w: 5, d: 4.6 },
-  { z: 18.8, x: 1.1, y: 0.35, w: 4.4, d: 4, hazards: [{ ox: 1.25, oz: 0.15 }, { ox: -1.25, oz: -0.2 }] },
-  { z: 25.6, x: -0.8, y: 0.25, w: 4.4, d: 4 },
-  { z: 33, x: 0, y: 0.45, w: 6.2, d: 5, checkpoint: true },
-  { z: 40.2, x: 0, y: 0.2, w: 4.6, d: 4.2, ice: true },
-  { z: 46.6, x: 1.2, y: 0.1, w: 4, d: 3.8, ice: true },
-  { z: 52.6, x: -1.1, y: 0.05, w: 3.8, d: 3.6, ice: true },
-  { z: 58.4, x: 0, y: 0.15, w: 3.4, d: 3.2, ice: true, moving: true, amp: 1.15 },
-  { z: 65.2, x: 0, y: 0.35, w: 6, d: 4.6, checkpoint: true },
-  { z: 72.2, x: 0.4, y: 0.9, w: 3.6, d: 3.2, tilt: -0.12 },
-  { z: 78.2, x: -0.6, y: 1.45, w: 3.4, d: 3, tilt: -0.12 },
-  { z: 83.8, x: 0.8, y: 2.0, w: 3.2, d: 2.8, tilt: -0.14 },
-  { z: 89.2, x: 0, y: 2.45, w: 3.4, d: 3 },
-  { z: 95, x: 0, y: 2.2, w: 3, d: 2.8, moving: true, amp: 1.25 },
-  { z: 102, x: 0, y: 2.55, w: 5.6, d: 4.4, checkpoint: true },
-  { z: 109, x: 1.4, y: 2.7, w: 3.2, d: 3, hazards: [{ ox: 0.85, oz: 0.3, kind: 'boulder' }] },
-  { z: 115, x: -0.4, y: 2.15, w: 3.6, d: 3.2, ice: true, tilt: 0.16, slideZ: 3.5 },
-  { z: 120.6, x: 0.6, y: 1.55, w: 3.4, d: 3, ice: true, tilt: 0.16, slideZ: 3.5 },
-  { z: 126.2, x: 0, y: 1.15, w: 4.2, d: 3.6 },
-  { z: 134, x: 0, y: 1.25, w: 8, d: 8, finish: true },
-];
-
 function platformMat(color, kind) {
   if (kind === 'ice') {
     return new THREE.MeshStandardMaterial({
@@ -110,6 +81,22 @@ function platformMat(color, kind) {
       emissiveIntensity: 0.16,
     });
   }
+  if (kind === 'wood') {
+    return new THREE.MeshStandardMaterial({
+      color: 0xc4843c,
+      roughness: 0.84,
+      metalness: 0.04,
+    });
+  }
+  if (kind === 'snow') {
+    return new THREE.MeshStandardMaterial({
+      color: 0xf4f8fc,
+      roughness: 0.74,
+      metalness: 0.05,
+      emissive: 0xd6eaf8,
+      emissiveIntensity: 0.04,
+    });
+  }
   return new THREE.MeshStandardMaterial({ color, roughness: 0.55, metalness: 0.1 });
 }
 
@@ -118,10 +105,12 @@ function makePlatform(w, h, d, color, kind) {
   mesh.castShadow = true;
   mesh.receiveShadow = true;
   const icy = kind === 'ice';
+  const woody = kind === 'wood';
+  const snowy = kind === 'snow';
   const studMat = new THREE.MeshStandardMaterial({
-    color: icy ? 0xd7f4ff : color,
-    roughness: icy ? 0.2 : 0.5,
-    metalness: icy ? 0.45 : 0.15,
+    color: icy ? 0xd7f4ff : woody ? 0xe0b07a : snowy ? 0xffffff : color,
+    roughness: icy ? 0.2 : woody ? 0.78 : 0.5,
+    metalness: icy ? 0.45 : 0.08,
     emissive: icy ? 0x9fd4ea : 0x000000,
     emissiveIntensity: icy ? 0.12 : 0,
   });
@@ -253,7 +242,7 @@ function addCottage(group, x, z) {
   group.add(wall, roof, win);
 }
 
-function addSnowDressing(group) {
+function addSnowDressing(group, finishZ = 118) {
   const wood = new THREE.MeshStandardMaterial({ color: 0x6b4a32, roughness: 0.8 });
   for (const x of [-3.6, 3.6]) {
     for (const z of [-3.2, 3.4]) {
@@ -263,12 +252,12 @@ function addSnowDressing(group) {
     }
   }
   addCottage(group, -6.2, 12);
-  addCottage(group, 6.4, 26);
-  addCottage(group, -6.6, 33);
+  addCottage(group, 6.4, 22);
+  addCottage(group, -6.5, 38);
   addLantern(group, -2.4, 1.55, 12);
-  addLantern(group, 2.3, 1.45, 26);
-  addLantern(group, 2.6, 1.7, 33);
-  addLantern(group, -2.2, 3.4, 102);
+  addLantern(group, 2.3, 1.5, 22);
+  addLantern(group, 2.4, 1.8, 60);
+  addLantern(group, -2.2, 3.3, finishZ);
 
   const stone = new THREE.MeshStandardMaterial({ color: 0xe7eef5, roughness: 0.62, metalness: 0.08 });
   const roofMat = new THREE.MeshStandardMaterial({
@@ -277,10 +266,10 @@ function addSnowDressing(group) {
   });
   for (const side of [-1, 1]) {
     const tower = new THREE.Mesh(new THREE.BoxGeometry(1.3, 6.2, 1.3), stone);
-    tower.position.set(side * 5.3, 1.25 + 3.1, 134.4);
+    tower.position.set(side * 5.3, 2.2 + 3.1, finishZ);
     tower.castShadow = true;
     const roof = new THREE.Mesh(new THREE.ConeGeometry(1.1, 1.7, 4), roofMat);
-    roof.position.set(side * 5.3, 1.25 + 7.0, 134.4);
+    roof.position.set(side * 5.3, 2.2 + 7.0, finishZ);
     roof.rotation.y = Math.PI / 4;
     group.add(tower, roof);
   }
@@ -301,7 +290,7 @@ function addSnowDressing(group) {
   for (let i = 0; i < count; i++) {
     positions[i * 3] = (Math.random() - 0.5) * 26;
     positions[i * 3 + 1] = Math.random() * 14 + 0.4;
-    positions[i * 3 + 2] = -6 + Math.random() * 150;
+    positions[i * 3 + 2] = -6 + Math.random() * (finishZ + 24);
   }
   const geo = new THREE.BufferGeometry();
   geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
@@ -320,7 +309,7 @@ function buildCourse(defs, meta, snow) {
   const coins = [];
   const checkpoints = [];
   const obstacles = [];
-  const palette = snow ? SNOW_COLORS : PLATFORM_COLORS;
+  const palette = PLATFORM_COLORS;
 
   const voidPlane = new THREE.Mesh(
     new THREE.PlaneGeometry(200, 400),
@@ -341,7 +330,8 @@ function buildCourse(defs, meta, snow) {
   defs.forEach((def, i) => {
     const h = def.h ?? 0.6;
     const color = palette[colorIdx++ % palette.length];
-    const mesh = makePlatform(def.w, h, def.d, color, def.ice ? 'ice' : '');
+    const kind = def.kind || (def.ice ? 'ice' : '');
+    const mesh = makePlatform(def.w, h, def.d, color, kind);
     const topY = def.y;
     mesh.position.set(def.x, topY - h / 2, def.z);
     if (def.tilt) mesh.rotation.x = def.tilt;
@@ -349,7 +339,7 @@ function buildCourse(defs, meta, snow) {
       halfW: def.w / 2, halfD: def.d / 2, halfH: h / 2, topY,
       baseX: def.x, baseY: topY, baseZ: def.z,
       moving: !!def.moving, amp: def.amp || 0, phase: i * 0.7,
-      ice: !!def.ice,
+      ice: kind === 'ice',
       slideZ: def.slideZ || 0,
       center: { x: def.x, y: topY - h / 2, z: def.z },
       size: { sx: def.w, sy: h, sz: def.d },
@@ -414,7 +404,7 @@ function buildCourse(defs, meta, snow) {
     radius: 3.5,
   };
   const startPos = new THREE.Vector3(0, 0.6, -2);
-  const snowPoints = snow ? addSnowDressing(group) : null;
+  const snowPoints = snow ? addSnowDressing(group, defs[defs.length - 1].z) : null;
   return {
     group,
     platforms,
@@ -433,7 +423,7 @@ function buildCourse(defs, meta, snow) {
 export function buildLevel(levelId = 'L01') {
   const meta = LEVELS.find((l) => l.id === levelId) || LEVELS[0];
   const snow = meta.id === 'L02';
-  return buildCourse(snow ? L02_DEFS : L01_DEFS, meta, snow);
+  return buildCourse(snow ? ARENDELLE_DEFS : L01_DEFS, meta, snow);
 }
 
 export function updateLevel(level, time) {

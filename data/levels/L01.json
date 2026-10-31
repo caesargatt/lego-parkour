@@ -1,6 +1,6 @@
 {
   "id": "L01",
-  "name": "Brick Start / 起步砖道",
+  "name": "沙漠地图 / Desert Run",
   "version": 1,
   "meta": {
     "targetClearSec": [
@@ -17,7 +17,17 @@
     "author": "Brick",
     "schema": "rex-3d-lock-v1",
     "lockedBy": "Rex+ENGINE_LOCK",
-    "coord": "Y-up Z-forward; center+full AABB; foot at spawn/CP y; fall y<-8"
+    "coord": "Y-up Z-forward; center+full AABB; foot at spawn/CP y; fall y<-8",
+    "theme": "desert",
+    "displayNameZh": "沙漠地图",
+    "displayNameEn": "Desert",
+    "order": 1,
+    "palette": [
+      "#e67e22",
+      "#f39c12",
+      "#d35400",
+      "#c0392b"
+    ]
   },
   "spawn": {
     "x": 0,

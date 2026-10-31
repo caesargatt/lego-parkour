@@ -1,0 +1,448 @@
+{
+  "id": "L02",
+  "name": "阿伦戴尔 / Arendelle",
+  "version": 1,
+  "meta": {
+    "theme": "arendelle",
+    "displayNameZh": "阿伦戴尔",
+    "displayNameEn": "Arendelle",
+    "order": 2,
+    "feel": "party-light-snow",
+    "difficultyCurve": [
+      "dock-tutorial",
+      "town-accelerate",
+      "ice-castle-finale"
+    ],
+    "coinCount": 26,
+    "targetClearSec": [
+      45,
+      80
+    ],
+    "palette": {
+      "warmVillage": [
+        "#e67e22",
+        "#f5d76e",
+        "#c0392b"
+      ],
+      "iceCastle": [
+        "#aed6f1",
+        "#5dade2",
+        "#d6eaf8",
+        "#85929e"
+      ],
+      "void": "#1a2744"
+    },
+    "refs": [
+      "/workspace/lego-parkour-refs/arendelle-village.png",
+      "/workspace/lego-parkour-refs/arendelle-map.webp"
+    ],
+    "schema": "rex-3d-lock-v1",
+    "author": "Brick"
+  },
+  "spawn": {
+    "x": 0,
+    "y": 1,
+    "z": 0,
+    "yaw": 0
+  },
+  "checkpoints": [
+    {
+      "id": "cp1",
+      "x": 0,
+      "y": 1.2,
+      "z": 30,
+      "r": 2.5
+    },
+    {
+      "id": "cp2",
+      "x": 0,
+      "y": 1.8,
+      "z": 60,
+      "r": 2.5
+    },
+    {
+      "id": "cp3",
+      "x": 0,
+      "y": 3.2,
+      "z": 102,
+      "r": 2.5
+    }
+  ],
+  "finish": {
+    "x": 0,
+    "y": 3.5,
+    "z": 118,
+    "sx": 5,
+    "sy": 3,
+    "sz": 2
+  },
+  "platforms": [
+    {
+      "id": "dock",
+      "type": "plat",
+      "kind": "wood",
+      "x": 0,
+      "y": 0,
+      "z": 4,
+      "sx": 8,
+      "sy": 1,
+      "sz": 10
+    },
+    {
+      "id": "street1",
+      "type": "plat",
+      "kind": "wood",
+      "x": 0,
+      "y": 0,
+      "z": 14,
+      "sx": 6,
+      "sy": 1,
+      "sz": 8
+    },
+    {
+      "id": "street2",
+      "type": "plat",
+      "kind": "snow",
+      "x": 1.2,
+      "y": 0.2,
+      "z": 22,
+      "sx": 5,
+      "sy": 1,
+      "sz": 6
+    },
+    {
+      "id": "bridge",
+      "type": "plat",
+      "kind": "wood",
+      "x": 0,
+      "y": 0.4,
+      "z": 30,
+      "sx": 4.5,
+      "sy": 0.8,
+      "sz": 6
+    },
+    {
+      "id": "alley1",
+      "type": "plat",
+      "kind": "snow",
+      "x": -1,
+      "y": 0.5,
+      "z": 38,
+      "sx": 4.5,
+      "sy": 1,
+      "sz": 5
+    },
+    {
+      "id": "ice1",
+      "type": "plat",
+      "kind": "ice",
+      "x": 1.5,
+      "y": 0.6,
+      "z": 45,
+      "sx": 4,
+      "sy": 0.6,
+      "sz": 5
+    },
+    {
+      "id": "rooftop",
+      "type": "plat",
+      "kind": "snow",
+      "x": -1.5,
+      "y": 1.0,
+      "z": 52,
+      "sx": 3.8,
+      "sy": 1,
+      "sz": 4
+    },
+    {
+      "id": "square",
+      "type": "plat",
+      "kind": "snow",
+      "x": 0,
+      "y": 0.8,
+      "z": 60,
+      "sx": 6,
+      "sy": 1,
+      "sz": 5
+    },
+    {
+      "id": "lake1",
+      "type": "plat",
+      "kind": "ice",
+      "x": 0,
+      "y": 1.0,
+      "z": 68,
+      "sx": 4,
+      "sy": 0.5,
+      "sz": 4
+    },
+    {
+      "id": "breath",
+      "type": "plat",
+      "kind": "snow",
+      "x": 0,
+      "y": 1.2,
+      "z": 74,
+      "sx": 5,
+      "sy": 1,
+      "sz": 4
+    },
+    {
+      "id": "lake2",
+      "type": "plat",
+      "kind": "ice",
+      "x": 2,
+      "y": 1.4,
+      "z": 80,
+      "sx": 3.5,
+      "sy": 0.5,
+      "sz": 4
+    },
+    {
+      "id": "pier",
+      "type": "plat",
+      "kind": "wood",
+      "x": -1,
+      "y": 1.6,
+      "z": 87,
+      "sx": 4,
+      "sy": 1,
+      "sz": 4
+    },
+    {
+      "id": "spire_path",
+      "type": "plat",
+      "kind": "ice",
+      "x": 0,
+      "y": 2.0,
+      "z": 95,
+      "sx": 3.2,
+      "sy": 0.5,
+      "sz": 4
+    },
+    {
+      "id": "gate",
+      "type": "plat",
+      "kind": "snow",
+      "x": 0,
+      "y": 2.2,
+      "z": 102,
+      "sx": 6,
+      "sy": 1,
+      "sz": 5
+    },
+    {
+      "id": "courtyard",
+      "type": "plat",
+      "kind": "snow",
+      "x": 0,
+      "y": 2.4,
+      "z": 110,
+      "sx": 5,
+      "sy": 1,
+      "sz": 5
+    },
+    {
+      "id": "throne",
+      "type": "plat",
+      "kind": "ice",
+      "x": 0,
+      "y": 2.2,
+      "z": 118,
+      "sx": 8,
+      "sy": 1,
+      "sz": 6
+    }
+  ],
+  "obstacles": [
+    {
+      "id": "crate1",
+      "type": "block",
+      "x": -1.5,
+      "y": 2.0,
+      "z": 52,
+      "sx": 1.2,
+      "sy": 1,
+      "sz": 1
+    },
+    {
+      "id": "thin_ice",
+      "type": "hazard",
+      "x": 0,
+      "y": 1.25,
+      "z": 68,
+      "sx": 2.4,
+      "sy": 0.3,
+      "sz": 1.8
+    },
+    {
+      "id": "frost",
+      "type": "hazard",
+      "x": 0,
+      "y": 2.25,
+      "z": 95,
+      "sx": 2.0,
+      "sy": 0.3,
+      "sz": 1.5
+    }
+  ],
+  "coins": [
+    {
+      "id": "c00",
+      "x": 0,
+      "y": 1.6,
+      "z": 3
+    },
+    {
+      "id": "c01",
+      "x": 0,
+      "y": 1.6,
+      "z": 8
+    },
+    {
+      "id": "c02",
+      "x": 0.8,
+      "y": 1.6,
+      "z": 14
+    },
+    {
+      "id": "c03",
+      "x": -0.8,
+      "y": 1.6,
+      "z": 18
+    },
+    {
+      "id": "c04",
+      "x": 1.2,
+      "y": 1.8,
+      "z": 24
+    },
+    {
+      "id": "c05",
+      "x": 0,
+      "y": 2.0,
+      "z": 30
+    },
+    {
+      "id": "c06",
+      "x": -1,
+      "y": 2.1,
+      "z": 36
+    },
+    {
+      "id": "c07",
+      "x": 1.5,
+      "y": 2.2,
+      "z": 42
+    },
+    {
+      "id": "c08",
+      "x": 1.5,
+      "y": 2.2,
+      "z": 46
+    },
+    {
+      "id": "c09",
+      "x": -1.5,
+      "y": 2.6,
+      "z": 52
+    },
+    {
+      "id": "c10",
+      "x": 0,
+      "y": 2.4,
+      "z": 56
+    },
+    {
+      "id": "c11",
+      "x": 0,
+      "y": 2.4,
+      "z": 60
+    },
+    {
+      "id": "c12",
+      "x": 0,
+      "y": 2.6,
+      "z": 66
+    },
+    {
+      "id": "c13",
+      "x": 0,
+      "y": 2.6,
+      "z": 70
+    },
+    {
+      "id": "c14",
+      "x": 0,
+      "y": 2.8,
+      "z": 74
+    },
+    {
+      "id": "c15",
+      "x": 2,
+      "y": 3.0,
+      "z": 80
+    },
+    {
+      "id": "c16",
+      "x": -1,
+      "y": 3.2,
+      "z": 86
+    },
+    {
+      "id": "c17",
+      "x": 0,
+      "y": 3.6,
+      "z": 92
+    },
+    {
+      "id": "c18",
+      "x": 0,
+      "y": 3.6,
+      "z": 96
+    },
+    {
+      "id": "c19",
+      "x": 0,
+      "y": 3.8,
+      "z": 102
+    },
+    {
+      "id": "c20",
+      "x": 0,
+      "y": 4.0,
+      "z": 108
+    },
+    {
+      "id": "c21",
+      "x": 0,
+      "y": 4.0,
+      "z": 114
+    },
+    {
+      "id": "c22",
+      "x": 2,
+      "y": 1.6,
+      "z": 12
+    },
+    {
+      "id": "c23",
+      "x": -2,
+      "y": 2.0,
+      "z": 38
+    },
+    {
+      "id": "c24",
+      "x": 2.2,
+      "y": 3.0,
+      "z": 82
+    },
+    {
+      "id": "c25",
+      "x": -1.8,
+      "y": 3.2,
+      "z": 88
+    }
+  ],
+  "notes": "kind=wood|snow|ice 供美术/程序换色；ice 可略降摩擦（程序可选）。hazard=薄冰/霜花，触碰回 CP。"
+}
