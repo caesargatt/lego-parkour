@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
   <title>LEGO PARKOUR / 乐高跑酷</title>
   <link rel="stylesheet" href="css/style.css" />
 </head>
@@ -16,6 +16,7 @@
         <p><kbd>WASD</kbd> / <kbd>↑↓←→</kbd> Move · <kbd>Space</kbd> Jump</p>
         <p><kbd>B</kbd> Skin Shop · <kbd>Esc</kbd> Pause</p>
         <p class="hint">移动跳跃收集金币，解锁皮肤 · Collect coins, unlock skins</p>
+        <p class="hint">Phone: left stick + Jump · 手机：左侧摇杆移动，右侧跳跃</p>
       </div>
       <button id="btn-start" class="btn primary" type="button">START / 开始</button>
     </div>
@@ -55,6 +56,20 @@
     </div>
   </div>
   <canvas id="game-canvas"></canvas>
+  <div id="touch-controls" aria-hidden="true">
+    <div id="touch-stick" class="touch-stick-zone" aria-label="Move">
+      <div class="touch-stick-base">
+        <div class="touch-stick-knob"></div>
+      </div>
+    </div>
+    <div class="touch-actions">
+      <div class="touch-action-row">
+        <div id="touch-shop" class="touch-btn touch-btn-small" role="button" aria-label="Shop">Shop</div>
+        <div id="touch-pause" class="touch-btn touch-btn-small" role="button" aria-label="Pause">⏸</div>
+      </div>
+      <div id="touch-jump" class="touch-btn touch-jump" role="button" aria-label="Jump">Jump</div>
+    </div>
+  </div>
   <script type="module" src="js/main.js"></script>
 </body>
 </html>
