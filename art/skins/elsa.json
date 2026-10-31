@@ -1,0 +1,15 @@
+{
+  "id": "elsa", "name": "艾莎", "price": 180,
+  "recognition": "铂金侧编辫 + 冰蓝渐变长裙 + 半透明披风 + 雪花闪点；肤色暖白不是冰蓝",
+  "parts": { "head": "#FCE3D2", "hands": "#FCE3D2", "hair": "#F3E7C4", "torso": "#6FC0EA", "arms": "#BFE6FA", "legs": "#4FA3D9", "accent": "#FFFFFF" },
+  "extras": {
+    "braid": "5 段小方块从头右后侧垂到右胸前，色 #F3E7C4，随头不随手臂",
+    "quiff": "头顶向后梳的蓬发：一块略宽略高的发片 + 前额斜块，色 #FFF6DC",
+    "gown": "替换双腿视觉：截锥/四棱台裙摆 上宽0.86 下宽1.2 高0.7，色 #4FA3D9→可顶点色到 #9FD8F2；跑动时裙摆轻微左右摆，不随腿剪刀",
+    "cape": "背后平面披风 宽0.9 高1.5，从肩垂到地，MeshStandardMaterial transparent opacity 0.45 color #BFE6FA side DoubleSide，跑动时 rotation.x 轻微后飘",
+    "sparkle": "裙身/披风上几颗小白方块 emissive #FFFFFF 0.6，可选"
+  },
+  "mat": { "metalness": 0.15, "roughness": 0.35 },
+  "collision": "不改 PLAYER_HEIGHT / AABB；所有附件纯视觉",
+  "runtimeNote": "Runtime braidX in js/skins.js is -0.86 (character left, local -X). A magnitude of 0.62 clips this rig's left arm; the arm outer face is about x=-0.73."
+}
