@@ -1,4 +1,13 @@
-/** Locked skin contract (COO): classic / red_brick / blue_knight / gold_chrome / neon */
+/** Locked skin contract (COO): classic / red_brick / blue_knight / gold_chrome / neon.
+ *  Prices stay 0 / 35 / 80 / 150 / 220. Do not rename those ids.
+ *  elsa is an extra shop skin at exactly 180 (between gold_chrome and neon).
+ *  Pix can recolor / reshape Elsa by editing the `elsa` object only.
+ *  player.js reads those params when `figure === 'elsa'`.
+ *
+ *  Braid: character left is local -X (same side as leftArm). This rig's left arm
+ *  outer face is about x=-0.73, so |x|=0.62 would sit inside the arm. braidX
+ *  defaults further out so the chain clears the arm, including during the swing.
+ */
 export const SKINS = [
   {
     id: 'classic',
@@ -56,6 +65,55 @@ export const SKINS = [
     accent: 0xfff8dc,
     metalness: 0.85,
     roughness: 0.2,
+  },
+  {
+    id: 'elsa',
+    name: '艾莎女王',
+    price: 180,
+    // Shop swatch + standard body slots. Warm skin, ice dress, platinum hair.
+    torso: 0x6fc0ea,
+    legs: 0x4fa3d9,
+    arms: 0xbfe6fa,
+    hands: 0xfce3d2,
+    head: 0xfce3d2,
+    hair: 0xf3e7c4,
+    accent: 0xe7f6ff,
+    metalness: 0.12,
+    roughness: 0.55,
+    figure: 'elsa',
+    elsa: {
+      // Pix palette. player.js builds the gown / cape / braid / quiff from these.
+      skin: 0xfce3d2,
+      hair: 0xf3e7c4,
+      torso: 0x6fc0ea,
+      arms: 0xbfe6fa,
+      gownTop: 0x4fa3d9,
+      gownHem: 0x9fd8f2,
+      cape: 0xbfe6fa,
+      capeOpacity: 0.45,
+      eyeshadow: 0xd7b4e8,
+      snowflake: 0xf4fbff,
+      bodiceMetalness: 0.62,
+      bodiceRoughness: 0.28,
+      bodiceEmissive: 0x7ec8ea,
+      bodiceEmissiveIntensity: 0.2,
+      gownMetalness: 0.4,
+      gownRoughness: 0.32,
+      gownEmissiveIntensity: 0.14,
+      // Left-side chain in minifig root space (feet at y=0). Visual only.
+      // |x|≈0.62 would intersect this rig's left arm (outer face ≈ -0.73).
+      braidX: -0.86,
+      braidZ: 0.05,
+      braidTopY: 2.1,
+      braidBotY: 1.2,
+      braidBlocks: 5,
+      braidSize: 0.11,
+      braidSway: 0.16,
+      quiffTilt: 0.55,
+      quiffZ: -0.2,
+      capeWidth: 1.05,
+      capeHeight: 1.15,
+    },
   },
   {
     id: 'neon',

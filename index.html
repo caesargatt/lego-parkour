@@ -17,13 +17,16 @@
         <p><kbd>B</kbd> Skin Shop · <kbd>Esc</kbd> Pause</p>
         <p class="hint">移动跳跃收集金币，解锁皮肤 · Collect coins, unlock skins</p>
         <p class="hint">Phone: left stick + Jump · 手机：左侧摇杆移动，右侧跳跃</p>
+        <p class="hint">通关沙漠后解锁阿伦戴尔 · Clear Desert to open Arendelle</p>
       </div>
+      <div id="level-select" class="level-select"></div>
       <button id="btn-start" class="btn primary" type="button">START / 开始</button>
     </div>
   </div>
   <div id="hud" class="hidden">
     <div class="hud-left">
       <div class="coin-badge"><span class="coin-icon">●</span> <span id="coin-count">0</span></div>
+      <div class="checkpoint-label" id="level-label">Level 1 · 沙漠</div>
       <div class="checkpoint-label" id="checkpoint-label">CP 0/3</div>
     </div>
     <div class="hud-right">
@@ -36,6 +39,7 @@
       <h2>PAUSED / 暂停</h2>
       <button id="btn-resume" class="btn primary" type="button">Resume / 继续</button>
       <button id="btn-open-shop" class="btn" type="button">Skin Shop / 皮肤商店</button>
+      <button id="btn-levels-pause" class="btn" type="button">Levels / 选关</button>
       <button id="btn-restart-pause" class="btn danger" type="button">Restart / 重开</button>
     </div>
   </div>
@@ -52,6 +56,7 @@
       <h2>🎉 FINISH! / 到达终点！</h2>
       <p id="win-stats">Coins collected this run: 0</p>
       <button id="btn-restart-win" class="btn primary" type="button">Play Again / 再来一次</button>
+      <button id="btn-levels-win" class="btn" type="button">Levels / 选关</button>
       <button id="btn-shop-win" class="btn" type="button">Skin Shop / 皮肤商店</button>
     </div>
   </div>

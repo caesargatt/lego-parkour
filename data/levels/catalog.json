@@ -1,0 +1,20 @@
+{
+  "levels": [
+    {
+      "id": "L01",
+      "file": "data/levels/L01.json",
+      "theme": "desert",
+      "nameZh": "沙漠地图",
+      "nameEn": "Desert"
+    },
+    {
+      "id": "L02",
+      "file": "data/levels/L02.json",
+      "theme": "arendelle",
+      "nameZh": "阿伦戴尔",
+      "nameEn": "Arendelle"
+    }
+  ],
+  "selectUi": "标题或关卡选择切换；默认 L01",
+  "schema": "rex-3d-lock-v1"
+}
