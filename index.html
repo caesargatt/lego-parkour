@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LEGO PARKOUR / 乐高跑酷</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div id="title-screen" class="overlay">
+    <div class="title-card">
+      <h1 class="logo">LEGO PARKOUR</h1>
+      <p class="logo-cn">乐高跑酷</p>
+      <p class="tagline">Casual party parkour · 3D demo</p>
+      <div class="instructions">
+        <p><kbd>WASD</kbd> / <kbd>↑↓←→</kbd> Move · <kbd>Space</kbd> Jump</p>
+        <p><kbd>B</kbd> Skin Shop · <kbd>Esc</kbd> Pause</p>
+        <p class="hint">移动跳跃收集金币，解锁皮肤 · Collect coins, unlock skins</p>
+      </div>
+      <button id="btn-start" class="btn primary" type="button">START / 开始</button>
+    </div>
+  </div>
+  <div id="hud" class="hidden">
+    <div class="hud-left">
+      <div class="coin-badge"><span class="coin-icon">●</span> <span id="coin-count">0</span></div>
+      <div class="checkpoint-label" id="checkpoint-label">CP 0/3</div>
+    </div>
+    <div class="hud-right">
+      <button id="btn-shop" class="btn small" type="button">🛒 Shop</button>
+      <button id="btn-pause" class="btn small" type="button">⏸</button>
+    </div>
+  </div>
+  <div id="pause-screen" class="overlay hidden">
+    <div class="panel">
+      <h2>PAUSED / 暂停</h2>
+      <button id="btn-resume" class="btn primary" type="button">Resume / 继续</button>
+      <button id="btn-open-shop" class="btn" type="button">Skin Shop / 皮肤商店</button>
+      <button id="btn-restart-pause" class="btn danger" type="button">Restart / 重开</button>
+    </div>
+  </div>
+  <div id="shop-screen" class="overlay hidden">
+    <div class="panel shop-panel">
+      <h2>SKIN SHOP / 皮肤商店</h2>
+      <p class="shop-balance">Coins: <span id="shop-coins">0</span></p>
+      <div id="skin-list" class="skin-list"></div>
+      <button id="btn-close-shop" class="btn" type="button">Close / 关闭</button>
+    </div>
+  </div>
+  <div id="win-screen" class="overlay hidden">
+    <div class="panel win-panel">
+      <h2>🎉 FINISH! / 到达终点！</h2>
+      <p id="win-stats">Coins collected this run: 0</p>
+      <button id="btn-restart-win" class="btn primary" type="button">Play Again / 再来一次</button>
+      <button id="btn-shop-win" class="btn" type="button">Skin Shop / 皮肤商店</button>
+    </div>
+  </div>
+  <canvas id="game-canvas"></canvas>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

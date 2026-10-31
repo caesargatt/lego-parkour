@@ -1,0 +1,68 @@
+/* Pix · 场景 + UI 色板（扁色、高对比，适合跑酷远读） */
+:root {
+  /* 场景 */
+  --sky: #7ec8e8;
+  --sky-deep: #4a9fc4;
+  --ground-fog: #e8f4f8;
+  --platform-primary: #c1440e;   /* 砖红 */
+  --platform-secondary: #f2c14e; /* 黄砖 */
+  --platform-accent: #2e6db4;    /* 蓝砖 */
+  --platform-dark: #5c4033;      /* 深棕结构 */
+  --checkpoint: #ffd54a;
+  --checkpoint-glow: #fff3a0;
+  --hazard: #e53935;
+  --coin: #ffc107;
+  --coin-edge: #e6a800;
+
+  /* 角色默认（classic） */
+  --skin-head: #f5d76e;
+  --skin-torso: #c1440e;
+  --skin-legs: #2e6db4;
+  --skin-hands: #f5d76e;
+  --skin-stud: #e8c84a;
+
+  /* UI */
+  --ui-bg: #f7f1e8;
+  --ui-ink: #2b2118;
+  --ui-muted: #7a6a58;
+  --ui-panel: #fffaf3;
+  --ui-stroke: #2b2118;
+  --ui-primary: #c1440e;
+  --ui-primary-text: #fff8f0;
+  --ui-secondary: #f5d76e;
+  --ui-radius: 14px;
+  --ui-radius-sm: 10px;
+  --ui-font: "Nunito", "Trebuchet MS", system-ui, sans-serif;
+  --ui-weight: 800;
+}
+
+body {
+  font-family: var(--ui-font);
+  font-weight: 600;
+  color: var(--ui-ink);
+  background: var(--ui-bg);
+}
+
+.btn-primary {
+  background: var(--ui-primary);
+  color: var(--ui-primary-text);
+  border: 3px solid var(--ui-stroke);
+  border-radius: var(--ui-radius);
+  font-weight: var(--ui-weight);
+  box-shadow: 0 4px 0 var(--ui-stroke);
+}
+
+.btn-secondary {
+  background: var(--ui-secondary);
+  color: var(--ui-ink);
+  border: 3px solid var(--ui-stroke);
+  border-radius: var(--ui-radius);
+  font-weight: var(--ui-weight);
+  box-shadow: 0 4px 0 var(--ui-stroke);
+}
+
+.panel {
+  background: var(--ui-panel);
+  border: 3px solid var(--ui-stroke);
+  border-radius: var(--ui-radius);
+}
