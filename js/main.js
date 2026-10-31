@@ -3,6 +3,7 @@ import { loadSave, saveState } from './storage.js';
 import { SKINS, getSkin } from './skins.js';
 import { createMinifigure, applySkin, animateMinifigure } from './player.js';
 import { buildLevel, updateLevel } from './level.js';
+import { initTouchControls, touchAxes } from './touch.js';
 
 // ——— State ———
 let save = loadSave();
@@ -142,11 +143,15 @@ function resize() {
 window.addEventListener('resize', resize);
 
 // ——— Input ———
+function requestJump() {
+  jumpBuffered = 0.15;
+}
+
 window.addEventListener('keydown', (e) => {
   keys[e.code] = true;
   if (e.code === 'Space') {
     e.preventDefault();
-    jumpBuffered = 0.15;
+    requestJump();
   }
   if (e.code === 'KeyB') {
     if (mode === 'playing' || mode === 'paused' || mode === 'win') openShop();
@@ -173,6 +178,15 @@ document.getElementById('btn-restart-pause').addEventListener('click', () => res
 document.getElementById('btn-restart-win').addEventListener('click', () => restartRun());
 document.getElementById('btn-shop-win').addEventListener('click', () => openShop());
 
+const touchUi = initTouchControls({
+  onJump: () => { if (mode === 'playing') requestJump(); },
+  onShop: () => { if (mode === 'playing' || mode === 'paused' || mode === 'win') openShop(); },
+  onPause: () => {
+    if (mode === 'playing') setMode('paused');
+    else if (mode === 'paused') setMode('playing');
+  },
+});
+
 // ——— UI helpers ———
 function setMode(m) {
   mode = m;
@@ -181,6 +195,8 @@ function setMode(m) {
   el.shop.classList.toggle('hidden', m !== 'shop');
   el.win.classList.toggle('hidden', m !== 'win');
   el.hud.classList.toggle('hidden', m === 'title');
+  document.body.classList.toggle('is-playing', m === 'playing');
+  touchUi.setActive(m === 'playing');
   if (m === 'playing') clock.getDelta(); // flush
 }
 
@@ -354,13 +370,16 @@ function win() {
 function getMoveInput() {
   let x = 0;
   let z = 0;
-  // Camera looks along +Z, so screen-left is +X (opposite of default Three.js view)
+  // Camera looks along +Z, so screen-left is +X (opposite of default Three.js view).
+  // The on-screen stick writes the same axes into touchAxes.
   if (keys['KeyA'] || keys['ArrowLeft']) x += 1;
   if (keys['KeyD'] || keys['ArrowRight']) x -= 1;
   if (keys['KeyW'] || keys['ArrowUp']) z += 1;
   if (keys['KeyS'] || keys['ArrowDown']) z -= 1;
+  x += touchAxes.x;
+  z += touchAxes.z;
   const len = Math.hypot(x, z);
-  if (len > 0) { x /= len; z /= len; }
+  if (len > 1) { x /= len; z /= len; }
   return { x, z };
 }
 
@@ -536,4 +555,17 @@ setMode('title');
 frame();
 
 // Expose for debug
-window.__legoParkour = { save, restartRun, getSkin };
+window.__legoParkour = {
+  save,
+  restartRun,
+  getSkin,
+  getState: () => ({
+    mode,
+    x: player.position.x,
+    y: player.position.y,
+    z: player.position.z,
+    vy: velocity.y,
+    ax: touchAxes.x,
+    az: touchAxes.z,
+  }),
+};
