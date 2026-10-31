@@ -1,16 +1,130 @@
 import * as THREE from './vendor/three.module.js';
 
 const PLATFORM_COLORS = [0xf39c12, 0xe67e22, 0x1abc9c, 0x3498db, 0x9b59b6, 0xe74c3c, 0x2ecc71];
+const SNOW_COLORS = [0xf7fbfe, 0xd5e4f0, 0xe8f1f8, 0xc5d7e6, 0xf0f5f8, 0xb9cfe0];
 
-function platformMat(color) {
+export const LEVELS = [
+  { id: 'L01', label: 'Level 1', name: '沙漠', nameEn: 'Desert' },
+  { id: 'L02', label: 'Level 2', name: '阿伦戴尔', nameEn: 'Arendelle' },
+];
+
+const THEME_DESERT = {
+  fog: 0x87b8e8,
+  fogNear: 40,
+  fogFar: 160,
+  skyTop: 0x4a90d9,
+  skyBottom: 0xffd4a8,
+  hemiSky: 0xffe8c8,
+  hemiGround: 0x6b4a8a,
+  hemiIntensity: 0.7,
+  sun: 0xfff0dd,
+  sunIntensity: 1.35,
+  fill: 0xaaccff,
+  fillIntensity: 0.35,
+};
+
+const THEME_SNOW = {
+  fog: 0xc5d4e4,
+  fogNear: 28,
+  fogFar: 155,
+  skyTop: 0x16325c,
+  skyBottom: 0xd7e6f2,
+  hemiSky: 0xc5d8ee,
+  hemiGround: 0x8aa4c0,
+  hemiIntensity: 0.85,
+  sun: 0xd4e4ff,
+  sunIntensity: 0.95,
+  fill: 0xffc48a,
+  fillIntensity: 0.32,
+};
+
+/** Desert course. Numbers are the original parkour; y is the top surface. */
+const L01_DEFS = [
+  { z: 0, x: 0, y: 0, w: 8, d: 10 },
+  { z: 12, x: 0, y: 0, w: 5, d: 5 },
+  { z: 20, x: 1.5, y: 0.3, w: 4, d: 4 },
+  { z: 28, x: -1, y: 0, w: 4.5, d: 4 },
+  { z: 36, x: 0, y: 0.2, w: 6, d: 5, checkpoint: true },
+  { z: 44, x: 2, y: 0.5, w: 3.5, d: 3.5 },
+  { z: 51, x: -1.5, y: 0.8, w: 3.2, d: 3.2 },
+  { z: 58, x: 0.5, y: 1.0, w: 3, d: 3 },
+  { z: 65, x: -2, y: 0.6, w: 4, d: 3.5 },
+  { z: 73, x: 0, y: 0.4, w: 3, d: 3, moving: true, amp: 1.2 },
+  { z: 81, x: 2, y: 0.8, w: 2.8, d: 2.8, moving: true, amp: 1.5 },
+  { z: 90, x: 0, y: 1.0, w: 6, d: 5, checkpoint: true },
+  { z: 96, x: 0, y: 1.0, w: 5, d: 4 },
+  { z: 103, x: -2.5, y: 1.2, w: 3, d: 3 },
+  { z: 110, x: 0, y: 1.5, w: 2.8, d: 2.8 },
+  { z: 117, x: 2.5, y: 1.8, w: 2.6, d: 2.6 },
+  { z: 124, x: 0, y: 2.0, w: 2.5, d: 2.5 },
+  { z: 131, x: 0, y: 1.5, w: 4.5, d: 3.5 },
+  { z: 138, x: -1.5, y: 1.6, w: 3.2, d: 2.8 },
+  { z: 146, x: 1, y: 1.2, w: 2.8, d: 2.5, moving: true, amp: 1.8 },
+  { z: 155, x: 0, y: 1.0, w: 6, d: 5, checkpoint: true },
+  { z: 164, x: -2, y: 1.4, w: 2.6, d: 2.6 },
+  { z: 171, x: 2, y: 1.8, w: 2.4, d: 2.4 },
+  { z: 178, x: 0, y: 2.2, w: 2.4, d: 2.4 },
+  { z: 185, x: -2.2, y: 2.5, w: 2.3, d: 2.3 },
+  { z: 192, x: 1.5, y: 2.8, w: 2.2, d: 2.2 },
+  { z: 199, x: 0, y: 3.0, w: 2.5, d: 2.5, moving: true, amp: 1.4 },
+  { z: 208, x: 0, y: 2.5, w: 5, d: 4 },
+  { z: 217, x: 0, y: 2.2, w: 4, d: 4 },
+  { z: 226, x: 0, y: 2.0, w: 8, d: 8, finish: true },
+];
+
+/**
+ * Arendelle. Same 3D fields as L01: x, top y, z, full size w/h/d, finish.
+ * Optional ice / tilt / slideZ / hazards only affect this course.
+ */
+const L02_DEFS = [
+  { z: 0, x: 0, y: 0, w: 8, d: 10 },
+  { z: 12, x: 0, y: 0.15, w: 5, d: 4.6 },
+  { z: 18.8, x: 1.1, y: 0.35, w: 4.4, d: 4, hazards: [{ ox: 1.25, oz: 0.15 }, { ox: -1.25, oz: -0.2 }] },
+  { z: 25.6, x: -0.8, y: 0.25, w: 4.4, d: 4 },
+  { z: 33, x: 0, y: 0.45, w: 6.2, d: 5, checkpoint: true },
+  { z: 40.2, x: 0, y: 0.2, w: 4.6, d: 4.2, ice: true },
+  { z: 46.6, x: 1.2, y: 0.1, w: 4, d: 3.8, ice: true },
+  { z: 52.6, x: -1.1, y: 0.05, w: 3.8, d: 3.6, ice: true },
+  { z: 58.4, x: 0, y: 0.15, w: 3.4, d: 3.2, ice: true, moving: true, amp: 1.15 },
+  { z: 65.2, x: 0, y: 0.35, w: 6, d: 4.6, checkpoint: true },
+  { z: 72.2, x: 0.4, y: 0.9, w: 3.6, d: 3.2, tilt: -0.12 },
+  { z: 78.2, x: -0.6, y: 1.45, w: 3.4, d: 3, tilt: -0.12 },
+  { z: 83.8, x: 0.8, y: 2.0, w: 3.2, d: 2.8, tilt: -0.14 },
+  { z: 89.2, x: 0, y: 2.45, w: 3.4, d: 3 },
+  { z: 95, x: 0, y: 2.2, w: 3, d: 2.8, moving: true, amp: 1.25 },
+  { z: 102, x: 0, y: 2.55, w: 5.6, d: 4.4, checkpoint: true },
+  { z: 109, x: 1.4, y: 2.7, w: 3.2, d: 3, hazards: [{ ox: 0.85, oz: 0.3, kind: 'boulder' }] },
+  { z: 115, x: -0.4, y: 2.15, w: 3.6, d: 3.2, ice: true, tilt: 0.16, slideZ: 3.5 },
+  { z: 120.6, x: 0.6, y: 1.55, w: 3.4, d: 3, ice: true, tilt: 0.16, slideZ: 3.5 },
+  { z: 126.2, x: 0, y: 1.15, w: 4.2, d: 3.6 },
+  { z: 134, x: 0, y: 1.25, w: 8, d: 8, finish: true },
+];
+
+function platformMat(color, kind) {
+  if (kind === 'ice') {
+    return new THREE.MeshStandardMaterial({
+      color: 0x9fd8ea,
+      roughness: 0.16,
+      metalness: 0.55,
+      emissive: 0x6eb7d4,
+      emissiveIntensity: 0.16,
+    });
+  }
   return new THREE.MeshStandardMaterial({ color, roughness: 0.55, metalness: 0.1 });
 }
 
-function makePlatform(w, h, d, color) {
-  const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), platformMat(color));
+function makePlatform(w, h, d, color, kind) {
+  const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), platformMat(color, kind));
   mesh.castShadow = true;
   mesh.receiveShadow = true;
-  const studMat = new THREE.MeshStandardMaterial({ color, roughness: 0.5, metalness: 0.15 });
+  const icy = kind === 'ice';
+  const studMat = new THREE.MeshStandardMaterial({
+    color: icy ? 0xd7f4ff : color,
+    roughness: icy ? 0.2 : 0.5,
+    metalness: icy ? 0.45 : 0.15,
+    emissive: icy ? 0x9fd4ea : 0x000000,
+    emissiveIntensity: icy ? 0.12 : 0,
+  });
   const studGeo = new THREE.CylinderGeometry(0.12, 0.12, 0.08, 10);
   const nx = Math.max(1, Math.floor(w / 0.7));
   const nz = Math.max(1, Math.floor(d / 0.7));
@@ -54,17 +168,168 @@ function makeCoin() {
   return group;
 }
 
-/** Build ~50s parkour course along +Z. Returns { group, platforms, coins, checkpoints, finish, startPos } */
-export function buildLevel() {
+function makeHazard(spec) {
+  if (spec.kind === 'boulder') {
+    const mesh = new THREE.Mesh(
+      new THREE.SphereGeometry(0.42, 12, 10),
+      new THREE.MeshStandardMaterial({ color: 0xd5e2ea, roughness: 0.55, metalness: 0.08 })
+    );
+    mesh.userData.hitRadius = 0.4;
+    mesh.userData.halfH = 0.42;
+    return mesh;
+  }
+  const mesh = new THREE.Mesh(
+    new THREE.ConeGeometry(0.28, 0.86, 6),
+    new THREE.MeshStandardMaterial({
+      color: 0xe7f7ff,
+      roughness: 0.22,
+      metalness: 0.4,
+      emissive: 0x8fd0ea,
+      emissiveIntensity: 0.28,
+    })
+  );
+  mesh.userData.hitRadius = 0.32;
+  mesh.userData.halfH = 0.43;
+  return mesh;
+}
+
+function addFinish(group, def, topY, snow) {
+  const archMat = new THREE.MeshStandardMaterial(snow ? {
+    color: 0xd7f1fb, metalness: 0.55, roughness: 0.22,
+    emissive: 0x8ecae6, emissiveIntensity: 0.35,
+  } : {
+    color: 0xffd54a, metalness: 0.5, roughness: 0.3,
+    emissive: 0xffa000, emissiveIntensity: 0.4,
+  });
+  const leftPillar = new THREE.Mesh(new THREE.BoxGeometry(0.4, 4, 0.4), archMat);
+  leftPillar.position.set(def.x - 2.5, topY + 2, def.z + 1);
+  const rightPillar = new THREE.Mesh(new THREE.BoxGeometry(0.4, 4, 0.4), archMat);
+  rightPillar.position.set(def.x + 2.5, topY + 2, def.z + 1);
+  const beam = new THREE.Mesh(new THREE.BoxGeometry(5.4, 0.4, 0.4), archMat);
+  beam.position.set(def.x, topY + 4, def.z + 1);
+  group.add(leftPillar, rightPillar, beam);
+  const banner = new THREE.Mesh(
+    new THREE.BoxGeometry(4.5, 1.0, 0.08),
+    new THREE.MeshStandardMaterial(snow ? {
+      color: 0x1b4f82, emissive: 0x163e6b, emissiveIntensity: 0.3,
+    } : {
+      color: 0xe74c3c, emissive: 0xc0392b, emissiveIntensity: 0.25,
+    })
+  );
+  banner.position.set(def.x, topY + 3.3, def.z + 1.15);
+  group.add(banner);
+}
+
+function addLantern(group, x, y, z) {
+  const lamp = new THREE.Mesh(
+    new THREE.SphereGeometry(0.16, 10, 8),
+    new THREE.MeshStandardMaterial({ color: 0xffe1a8, emissive: 0xffb347, emissiveIntensity: 0.9 })
+  );
+  lamp.position.set(x, y, z);
+  group.add(lamp);
+  const light = new THREE.PointLight(0xffb35a, 14, 9, 2);
+  light.position.set(x, y, z);
+  group.add(light);
+}
+
+function addCottage(group, x, z) {
+  const wall = new THREE.Mesh(
+    new THREE.BoxGeometry(2.1, 1.5, 2.1),
+    new THREE.MeshStandardMaterial({ color: 0xf4f7fb, roughness: 0.72, metalness: 0.04 })
+  );
+  wall.position.set(x, 0.75, z);
+  wall.castShadow = true;
+  const roof = new THREE.Mesh(
+    new THREE.ConeGeometry(1.6, 1.05, 4),
+    new THREE.MeshStandardMaterial({ color: 0x2f5f8a, roughness: 0.5, metalness: 0.12 })
+  );
+  roof.position.set(x, 1.95, z);
+  roof.rotation.y = Math.PI / 4;
+  const win = new THREE.Mesh(
+    new THREE.BoxGeometry(0.5, 0.5, 0.08),
+    new THREE.MeshStandardMaterial({ color: 0xffe1b0, emissive: 0xffb347, emissiveIntensity: 0.85 })
+  );
+  win.position.set(x, 0.95, z + 1.08);
+  group.add(wall, roof, win);
+}
+
+function addSnowDressing(group) {
+  const wood = new THREE.MeshStandardMaterial({ color: 0x6b4a32, roughness: 0.8 });
+  for (const x of [-3.6, 3.6]) {
+    for (const z of [-3.2, 3.4]) {
+      const post = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.14, 3.2, 8), wood);
+      post.position.set(x, -1.3, z);
+      group.add(post);
+    }
+  }
+  addCottage(group, -6.2, 12);
+  addCottage(group, 6.4, 26);
+  addCottage(group, -6.6, 33);
+  addLantern(group, -2.4, 1.55, 12);
+  addLantern(group, 2.3, 1.45, 26);
+  addLantern(group, 2.6, 1.7, 33);
+  addLantern(group, -2.2, 3.4, 102);
+
+  const stone = new THREE.MeshStandardMaterial({ color: 0xe7eef5, roughness: 0.62, metalness: 0.08 });
+  const roofMat = new THREE.MeshStandardMaterial({
+    color: 0x1d4e89, roughness: 0.45, metalness: 0.2,
+    emissive: 0x163e6b, emissiveIntensity: 0.15,
+  });
+  for (const side of [-1, 1]) {
+    const tower = new THREE.Mesh(new THREE.BoxGeometry(1.3, 6.2, 1.3), stone);
+    tower.position.set(side * 5.3, 1.25 + 3.1, 134.4);
+    tower.castShadow = true;
+    const roof = new THREE.Mesh(new THREE.ConeGeometry(1.1, 1.7, 4), roofMat);
+    roof.position.set(side * 5.3, 1.25 + 7.0, 134.4);
+    roof.rotation.y = Math.PI / 4;
+    group.add(tower, roof);
+  }
+
+  const water = new THREE.Mesh(
+    new THREE.PlaneGeometry(34, 56),
+    new THREE.MeshStandardMaterial({
+      color: 0x6eafc8, roughness: 0.18, metalness: 0.35,
+      transparent: true, opacity: 0.72,
+    })
+  );
+  water.rotation.x = -Math.PI / 2;
+  water.position.set(0, -1.35, 50);
+  group.add(water);
+
+  const count = 280;
+  const positions = new Float32Array(count * 3);
+  for (let i = 0; i < count; i++) {
+    positions[i * 3] = (Math.random() - 0.5) * 26;
+    positions[i * 3 + 1] = Math.random() * 14 + 0.4;
+    positions[i * 3 + 2] = -6 + Math.random() * 150;
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  const snow = new THREE.Points(
+    geo,
+    new THREE.PointsMaterial({ color: 0xffffff, size: 0.14, transparent: true, opacity: 0.8, depthWrite: false })
+  );
+  snow.frustumCulled = false;
+  group.add(snow);
+  return snow;
+}
+
+function buildCourse(defs, meta, snow) {
   const group = new THREE.Group();
   const platforms = [];
   const coins = [];
   const checkpoints = [];
+  const obstacles = [];
+  const palette = snow ? SNOW_COLORS : PLATFORM_COLORS;
 
   const voidPlane = new THREE.Mesh(
     new THREE.PlaneGeometry(200, 400),
     new THREE.MeshStandardMaterial({
-      color: 0x2c1a4a, roughness: 1, metalness: 0, transparent: true, opacity: 0.35,
+      color: snow ? 0x0e2438 : 0x2c1a4a,
+      roughness: 1,
+      metalness: 0,
+      transparent: true,
+      opacity: snow ? 0.55 : 0.35,
     })
   );
   voidPlane.rotation.x = -Math.PI / 2;
@@ -72,53 +337,36 @@ export function buildLevel() {
   voidPlane.receiveShadow = true;
   group.add(voidPlane);
 
-  const defs = [
-    { z: 0, x: 0, y: 0, w: 8, d: 10 },
-    { z: 12, x: 0, y: 0, w: 5, d: 5 },
-    { z: 20, x: 1.5, y: 0.3, w: 4, d: 4 },
-    { z: 28, x: -1, y: 0, w: 4.5, d: 4 },
-    { z: 36, x: 0, y: 0.2, w: 6, d: 5, checkpoint: true },
-    { z: 44, x: 2, y: 0.5, w: 3.5, d: 3.5 },
-    { z: 51, x: -1.5, y: 0.8, w: 3.2, d: 3.2 },
-    { z: 58, x: 0.5, y: 1.0, w: 3, d: 3 },
-    { z: 65, x: -2, y: 0.6, w: 4, d: 3.5 },
-    { z: 73, x: 0, y: 0.4, w: 3, d: 3, moving: true, amp: 1.2 },
-    { z: 81, x: 2, y: 0.8, w: 2.8, d: 2.8, moving: true, amp: 1.5 },
-    { z: 90, x: 0, y: 1.0, w: 6, d: 5, checkpoint: true },
-    { z: 96, x: 0, y: 1.0, w: 5, d: 4 },
-    { z: 103, x: -2.5, y: 1.2, w: 3, d: 3 },
-    { z: 110, x: 0, y: 1.5, w: 2.8, d: 2.8 },
-    { z: 117, x: 2.5, y: 1.8, w: 2.6, d: 2.6 },
-    { z: 124, x: 0, y: 2.0, w: 2.5, d: 2.5 },
-    { z: 131, x: 0, y: 1.5, w: 4.5, d: 3.5 },
-    { z: 138, x: -1.5, y: 1.6, w: 3.2, d: 2.8 },
-    { z: 146, x: 1, y: 1.2, w: 2.8, d: 2.5, moving: true, amp: 1.8 },
-    { z: 155, x: 0, y: 1.0, w: 6, d: 5, checkpoint: true },
-    { z: 164, x: -2, y: 1.4, w: 2.6, d: 2.6 },
-    { z: 171, x: 2, y: 1.8, w: 2.4, d: 2.4 },
-    { z: 178, x: 0, y: 2.2, w: 2.4, d: 2.4 },
-    { z: 185, x: -2.2, y: 2.5, w: 2.3, d: 2.3 },
-    { z: 192, x: 1.5, y: 2.8, w: 2.2, d: 2.2 },
-    { z: 199, x: 0, y: 3.0, w: 2.5, d: 2.5, moving: true, amp: 1.4 },
-    { z: 208, x: 0, y: 2.5, w: 5, d: 4 },
-    { z: 217, x: 0, y: 2.2, w: 4, d: 4 },
-    { z: 226, x: 0, y: 2.0, w: 8, d: 8, finish: true },
-  ];
-
   let colorIdx = 0;
   defs.forEach((def, i) => {
     const h = def.h ?? 0.6;
-    const color = PLATFORM_COLORS[colorIdx++ % PLATFORM_COLORS.length];
-    const mesh = makePlatform(def.w, h, def.d, color);
+    const color = palette[colorIdx++ % palette.length];
+    const mesh = makePlatform(def.w, h, def.d, color, def.ice ? 'ice' : '');
     const topY = def.y;
     mesh.position.set(def.x, topY - h / 2, def.z);
+    if (def.tilt) mesh.rotation.x = def.tilt;
     mesh.userData = {
       halfW: def.w / 2, halfD: def.d / 2, halfH: h / 2, topY,
       baseX: def.x, baseY: topY, baseZ: def.z,
       moving: !!def.moving, amp: def.amp || 0, phase: i * 0.7,
+      ice: !!def.ice,
+      slideZ: def.slideZ || 0,
+      center: { x: def.x, y: topY - h / 2, z: def.z },
+      size: { sx: def.w, sy: h, sz: def.d },
     };
     group.add(mesh);
     platforms.push(mesh);
+
+    if (def.hazards) {
+      for (const spec of def.hazards) {
+        const hazard = makeHazard(spec);
+        const lift = spec.kind === 'boulder' ? 0.42 : 0.43;
+        hazard.position.set(spec.ox || 0, h / 2 + lift, spec.oz || 0);
+        hazard.castShadow = true;
+        mesh.add(hazard);
+        obstacles.push(hazard);
+      }
+    }
 
     if (i > 0 && !def.finish) {
       const nCoins = def.checkpoint ? 2 : 1;
@@ -141,9 +389,11 @@ export function buildLevel() {
       flagPole.position.set(def.x + def.w / 2 - 0.4, topY + 1.1, def.z);
       flagPole.castShadow = true;
       group.add(flagPole);
+      const flagColor = snow ? 0x7fdbff : 0x2ecc71;
+      const flagGlow = snow ? 0x4fc3f7 : 0x27ae60;
       const flag = new THREE.Mesh(
         new THREE.BoxGeometry(0.7, 0.45, 0.05),
-        new THREE.MeshStandardMaterial({ color: 0x2ecc71, emissive: 0x27ae60, emissiveIntensity: 0.3 })
+        new THREE.MeshStandardMaterial({ color: flagColor, emissive: flagGlow, emissiveIntensity: 0.3 })
       );
       flag.position.set(def.x + def.w / 2 - 0.05, topY + 1.9, def.z);
       group.add(flag);
@@ -155,25 +405,7 @@ export function buildLevel() {
       });
     }
 
-    if (def.finish) {
-      const archMat = new THREE.MeshStandardMaterial({
-        color: 0xffd54a, metalness: 0.5, roughness: 0.3,
-        emissive: 0xffa000, emissiveIntensity: 0.4,
-      });
-      const leftPillar = new THREE.Mesh(new THREE.BoxGeometry(0.4, 4, 0.4), archMat);
-      leftPillar.position.set(def.x - 2.5, topY + 2, def.z + 1);
-      const rightPillar = new THREE.Mesh(new THREE.BoxGeometry(0.4, 4, 0.4), archMat);
-      rightPillar.position.set(def.x + 2.5, topY + 2, def.z + 1);
-      const beam = new THREE.Mesh(new THREE.BoxGeometry(5.4, 0.4, 0.4), archMat);
-      beam.position.set(def.x, topY + 4, def.z + 1);
-      group.add(leftPillar, rightPillar, beam);
-      const banner = new THREE.Mesh(
-        new THREE.BoxGeometry(4.5, 1.0, 0.08),
-        new THREE.MeshStandardMaterial({ color: 0xe74c3c, emissive: 0xc0392b, emissiveIntensity: 0.25 })
-      );
-      banner.position.set(def.x, topY + 3.3, def.z + 1.15);
-      group.add(banner);
-    }
+    if (def.finish) addFinish(group, def, topY, snow);
   });
 
   const finishDef = defs[defs.length - 1];
@@ -182,7 +414,26 @@ export function buildLevel() {
     radius: 3.5,
   };
   const startPos = new THREE.Vector3(0, 0.6, -2);
-  return { group, platforms, coins, checkpoints, finish, startPos };
+  const snowPoints = snow ? addSnowDressing(group) : null;
+  return {
+    group,
+    platforms,
+    coins,
+    checkpoints,
+    obstacles,
+    finish,
+    startPos,
+    snow: snowPoints,
+    theme: snow ? THEME_SNOW : THEME_DESERT,
+    meta: { ...meta },
+  };
+}
+
+/** Entry used by main.js. Unknown ids fall back to the desert course. */
+export function buildLevel(levelId = 'L01') {
+  const meta = LEVELS.find((l) => l.id === levelId) || LEVELS[0];
+  const snow = meta.id === 'L02';
+  return buildCourse(snow ? L02_DEFS : L01_DEFS, meta, snow);
 }
 
 export function updateLevel(level, time) {
@@ -197,5 +448,14 @@ export function updateLevel(level, time) {
     coin.userData.spin += 0.04;
     coin.rotation.y = coin.userData.spin;
     coin.position.y = coin.userData.baseY + Math.sin(time * 3 + coin.userData.spin) * 0.15;
+  }
+  if (level.snow) {
+    const attr = level.snow.geometry.attributes.position;
+    const arr = attr.array;
+    for (let i = 0; i < arr.length; i += 3) {
+      arr[i + 1] -= 0.04;
+      if (arr[i + 1] < 0) arr[i + 1] = 14;
+    }
+    attr.needsUpdate = true;
   }
 }

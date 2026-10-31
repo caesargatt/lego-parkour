@@ -2,7 +2,7 @@ import * as THREE from './vendor/three.module.js';
 import { loadSave, saveState } from './storage.js';
 import { SKINS, getSkin } from './skins.js';
 import { createMinifigure, applySkin, animateMinifigure } from './player.js';
-import { buildLevel, updateLevel } from './level.js';
+import { buildLevel, updateLevel, LEVELS } from './level.js';
 import { initTouchControls, touchAxes } from './touch.js';
 
 // ——— State ———
@@ -12,6 +12,7 @@ let runCoins = 0;
 let checkpointIndex = 0; // 0 = start
 let spawnPos = new THREE.Vector3();
 let shopReturnMode = 'playing';
+let selectedLevelId = 'L01';
 
 const keys = {};
 const clock = new THREE.Clock();
@@ -27,6 +28,8 @@ const PLAYER_HEIGHT = 2.0;
 
 const velocity = new THREE.Vector3();
 let grounded = false;
+let groundedIce = false;
+let slideZ = 0;
 let jumpBuffered = 0;
 let coyote = 0;
 
@@ -46,6 +49,7 @@ const el = {
   shopCoins: document.getElementById('shop-coins'),
   skinList: document.getElementById('skin-list'),
   checkpointLabel: document.getElementById('checkpoint-label'),
+  levelLabel: document.getElementById('level-label'),
   winStats: document.getElementById('win-stats'),
   coinBadge: document.querySelector('.coin-badge') || null,
 };
@@ -119,15 +123,11 @@ scene.add(fill);
 const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 400);
 camera.position.set(0, 6, -8);
 
-// Level + player
-let level = buildLevel();
-scene.add(level.group);
-
+// Level + player. buildLevel(id) is the only level entry main uses.
+let level = null;
 let player = createMinifigure(save.equippedSkin);
 scene.add(player);
-
-spawnPos.copy(level.startPos);
-player.position.copy(spawnPos);
+const hazardPos = new THREE.Vector3();
 
 const camTarget = new THREE.Vector3();
 const camDesired = new THREE.Vector3();
@@ -177,6 +177,8 @@ document.getElementById('btn-pause').addEventListener('click', () => setMode('pa
 document.getElementById('btn-restart-pause').addEventListener('click', () => restartRun());
 document.getElementById('btn-restart-win').addEventListener('click', () => restartRun());
 document.getElementById('btn-shop-win').addEventListener('click', () => openShop());
+document.getElementById('btn-levels-pause').addEventListener('click', () => setMode('title'));
+document.getElementById('btn-levels-win').addEventListener('click', () => setMode('title'));
 
 const touchUi = initTouchControls({
   onJump: () => { if (mode === 'playing') requestJump(); },
@@ -197,6 +199,7 @@ function setMode(m) {
   el.hud.classList.toggle('hidden', m === 'title');
   document.body.classList.toggle('is-playing', m === 'playing');
   touchUi.setActive(m === 'playing');
+  if (m === 'title') renderLevelSelect();
   if (m === 'playing') clock.getDelta(); // flush
 }
 
@@ -206,7 +209,48 @@ function updateCoinHUD() {
 }
 
 function updateCPLabel() {
-  el.checkpointLabel.textContent = `CP ${checkpointIndex}/3`;
+  const total = level?.checkpoints?.length ?? 0;
+  el.checkpointLabel.textContent = `CP ${checkpointIndex}/${total}`;
+}
+
+function updateLevelLabel() {
+  if (!el.levelLabel || !level?.meta) return;
+  el.levelLabel.textContent = `${level.meta.label} · ${level.meta.name}`;
+}
+
+function isLevelUnlocked(id) {
+  const index = LEVELS.findIndex((lv) => lv.id === id);
+  if (index <= 0) return true;
+  return save.clearedLevels.includes(LEVELS[index - 1].id);
+}
+
+function renderLevelSelect() {
+  const root = document.getElementById('level-select');
+  if (!root) return;
+  root.innerHTML = '';
+  for (const lv of LEVELS) {
+    const open = isLevelUnlocked(lv.id);
+    const cleared = save.clearedLevels.includes(lv.id);
+    const best = save.bestCoins[lv.id];
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'level-btn' + (lv.id === selectedLevelId ? ' selected' : '') + (open ? '' : ' locked');
+    btn.disabled = !open;
+    btn.setAttribute('aria-pressed', lv.id === selectedLevelId ? 'true' : 'false');
+    btn.dataset.level = lv.id;
+    const prev = LEVELS[LEVELS.findIndex((item) => item.id === lv.id) - 1];
+    const lock = open || !prev
+      ? ''
+      : `<span class="level-lock">通关「${prev.name}」后解锁 · Clear ${prev.nameEn} first</span>`;
+    const badge = cleared ? '<span class="level-badge">已通关 Cleared</span>' : '';
+    const bestText = Number.isFinite(best) ? `<span class="level-best">Best ${best} · 最佳 ${best}</span>` : '';
+    btn.innerHTML = `<span class="level-kicker">${lv.label}</span><span class="level-name">${lv.name}</span><span class="level-en">${lv.nameEn}</span>${badge}${bestText}${lock}`;
+    btn.addEventListener('click', () => {
+      if (!isLevelUnlocked(lv.id)) return;
+      if (lv.id !== selectedLevelId) mountLevel(lv.id);
+    });
+    root.appendChild(btn);
+  }
 }
 
 function floatText(x, y, text) {
@@ -280,19 +324,19 @@ function startGame() {
   setMode('playing');
 }
 
+function recordLevelClear() {
+  const id = level?.meta?.id || selectedLevelId;
+  if (!save.clearedLevels.includes(id)) save.clearedLevels.push(id);
+  const prev = Number.isFinite(save.bestCoins[id]) ? save.bestCoins[id] : -1;
+  if (runCoins > prev) save.bestCoins[id] = runCoins;
+  saveState(save);
+  renderLevelSelect();
+}
+
 function restartRun() {
-  // Rebuild level so coins reset
-  scene.remove(level.group);
-  level = buildLevel();
-  scene.add(level.group);
+  mountLevel(selectedLevelId);
   runCoins = 0;
-  checkpointIndex = 0;
-  spawnPos.copy(level.startPos);
-  player.position.copy(spawnPos);
-  velocity.set(0, 0, 0);
-  grounded = false;
   applySkin(player, save.equippedSkin);
-  updateCPLabel();
   updateCoinHUD();
   setMode('playing');
 }
@@ -362,7 +406,11 @@ function spawnBurst(pos) {
 }
 
 function win() {
-  el.winStats.textContent = `This run: +${runCoins} coins · Total: ${save.coins}  |  本局 +${runCoins} · 总计 ${save.coins}`;
+  recordLevelClear();
+  const id = level?.meta?.id || selectedLevelId;
+  const best = save.bestCoins[id];
+  const name = level?.meta ? `${level.meta.name} / ${level.meta.nameEn}` : id;
+  el.winStats.textContent = `${name} · This run: +${runCoins} · Best ${best} · Total: ${save.coins}  |  本局 +${runCoins} · 最佳 ${best} · 总计 ${save.coins}`;
   setMode('win');
 }
 
@@ -385,10 +433,13 @@ function getMoveInput() {
 
 function resolvePlatforms(dt) {
   grounded = false;
+  groundedIce = false;
+  slideZ = 0;
   const px = player.position.x;
   const pz = player.position.z;
   const py = player.position.y;
   let bestTop = -Infinity;
+  let bestPlat = null;
   let onAny = false;
 
   for (const plat of level.platforms) {
@@ -404,8 +455,11 @@ function resolvePlatforms(dt) {
       const top = plat.position.y + u.halfH;
       // Standing on top
       if (velocity.y <= 0 && py >= top - 0.35 && py <= top + 0.25) {
-        if (top > bestTop) bestTop = top;
-        onAny = true;
+        if (top > bestTop) {
+          bestTop = top;
+          bestPlat = plat;
+          onAny = true;
+        }
       }
     }
   }
@@ -415,16 +469,21 @@ function resolvePlatforms(dt) {
     velocity.y = 0;
     grounded = true;
     coyote = 0.12;
+    groundedIce = !!bestPlat.userData.ice;
+    slideZ = bestPlat.userData.slideZ || 0;
   }
 }
 
 function updatePlayer(dt) {
   const input = getMoveInput();
-  const control = grounded ? 1 : AIR_CONTROL;
+  const icy = grounded && groundedIce;
+  const control = grounded ? (icy ? 0.42 : 1) : AIR_CONTROL;
+  const response = icy ? 3.6 : 12;
   const targetVx = input.x * MOVE_SPEED;
   const targetVz = input.z * MOVE_SPEED;
-  velocity.x += (targetVx - velocity.x) * Math.min(1, 12 * control * dt);
-  velocity.z += (targetVz - velocity.z) * Math.min(1, 12 * control * dt);
+  velocity.x += (targetVx - velocity.x) * Math.min(1, response * control * dt);
+  velocity.z += (targetVz - velocity.z) * Math.min(1, response * control * dt);
+  if (grounded && slideZ) velocity.z += slideZ * dt;
 
   // Jump
   jumpBuffered -= dt;
@@ -453,7 +512,7 @@ function updatePlayer(dt) {
   animateMinifigure(player, moving, grounded, dt, elapsed);
 
   // Fall
-  if (player.position.y < -6) {
+  if (player.position.y < -6 || hurtByHazard()) {
     respawn();
   }
 
@@ -479,6 +538,78 @@ function updatePlayer(dt) {
       win();
     }
   }
+}
+
+function hurtByHazard() {
+  const list = level?.obstacles;
+  if (!list || !list.length) return false;
+  const py = player.position.y;
+  for (const ob of list) {
+    ob.getWorldPosition(hazardPos);
+    const r = ob.userData.hitRadius || 0.4;
+    const dx = player.position.x - hazardPos.x;
+    const dz = player.position.z - hazardPos.z;
+    if (dx * dx + dz * dz > r * r) continue;
+    const half = ob.userData.halfH || 0.4;
+    if (py < hazardPos.y + half && py + 0.9 > hazardPos.y - half) return true;
+  }
+  return false;
+}
+
+function disposeObject3D(root) {
+  const seen = new Set();
+  root.traverse((obj) => {
+    if (obj.geometry && !seen.has(obj.geometry)) {
+      seen.add(obj.geometry);
+      obj.geometry.dispose();
+    }
+    const mats = obj.material ? (Array.isArray(obj.material) ? obj.material : [obj.material]) : [];
+    for (const material of mats) {
+      if (material && !seen.has(material)) {
+        seen.add(material);
+        material.dispose();
+      }
+    }
+  });
+}
+
+function applyLevelTheme(theme) {
+  if (!theme) return;
+  scene.fog.color.setHex(theme.fog);
+  scene.fog.near = theme.fogNear;
+  scene.fog.far = theme.fogFar;
+  skyMat.uniforms.topColor.value.setHex(theme.skyTop);
+  skyMat.uniforms.bottomColor.value.setHex(theme.skyBottom);
+  hemi.color.setHex(theme.hemiSky);
+  hemi.groundColor.setHex(theme.hemiGround);
+  hemi.intensity = theme.hemiIntensity;
+  sun.color.setHex(theme.sun);
+  sun.intensity = theme.sunIntensity;
+  fill.color.setHex(theme.fill);
+  fill.intensity = theme.fillIntensity;
+}
+
+function mountLevel(id) {
+  const known = LEVELS.some((lv) => lv.id === id);
+  const nextId = known && isLevelUnlocked(id) ? id : LEVELS[0].id;
+  selectedLevelId = nextId;
+  if (level) {
+    scene.remove(level.group);
+    disposeObject3D(level.group);
+  }
+  level = buildLevel(selectedLevelId);
+  scene.add(level.group);
+  applyLevelTheme(level.theme);
+  checkpointIndex = 0;
+  spawnPos.copy(level.startPos);
+  if (player) player.position.copy(spawnPos);
+  velocity.set(0, 0, 0);
+  grounded = false;
+  groundedIce = false;
+  slideZ = 0;
+  updateCPLabel();
+  updateLevelLabel();
+  renderLevelSelect();
 }
 
 function updateCamera(dt) {
@@ -549,7 +680,7 @@ function frame() {
 
 // Init
 updateCoinHUD();
-updateCPLabel();
+mountLevel(selectedLevelId);
 applySkin(player, save.equippedSkin);
 setMode('title');
 frame();
@@ -559,6 +690,8 @@ window.__legoParkour = {
   save,
   restartRun,
   getSkin,
+  player,
+  camera,
   getState: () => ({
     mode,
     x: player.position.x,
@@ -567,5 +700,9 @@ window.__legoParkour = {
     vy: velocity.y,
     ax: touchAxes.x,
     az: touchAxes.z,
+    levelId: selectedLevelId,
+    levelName: level?.meta?.name || '',
+    platforms: level?.platforms?.length || 0,
+    cleared: save.clearedLevels.slice(),
   }),
 };
