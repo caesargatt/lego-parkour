@@ -10,6 +10,10 @@ export const touchAxes = { x: 0, z: 0 };
 const DEADZONE = 0.18;
 
 export function initTouchControls({ onJump, onShop, onPause }) {
+  // iOS ignores user-scalable. These listeners only cancel the browser
+  // gesture; they do not stop controls from seeing touchstart/move/end.
+  installViewportGuards();
+
   const root = document.getElementById('touch-controls');
   const stick = document.getElementById('touch-stick');
   const base = stick?.querySelector('.touch-stick-base');
@@ -91,15 +95,6 @@ export function initTouchControls({ onJump, onShop, onPause }) {
 
   root.addEventListener('contextmenu', (e) => e.preventDefault());
 
-  // Block scroll / pinch-zoom on the playfield. Shop list still scrolls.
-  document.addEventListener('touchmove', (e) => {
-    const target = e.target;
-    if (target && target.closest && target.closest('.shop-panel')) return;
-    e.preventDefault();
-  }, { passive: false });
-
-  document.addEventListener('gesturestart', (e) => e.preventDefault(), { passive: false });
-
   window.addEventListener('blur', resetStick);
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) resetStick();
@@ -113,6 +108,41 @@ export function initTouchControls({ onJump, onShop, onPause }) {
 
   setActive(false);
   return { setActive, resetStick };
+}
+
+let viewportGuardsInstalled = false;
+
+function installViewportGuards() {
+  if (viewportGuardsInstalled) return;
+  viewportGuardsInstalled = true;
+
+  const blockGesture = (e) => {
+    e.preventDefault();
+  };
+  document.addEventListener('gesturestart', blockGesture, { passive: false });
+  document.addEventListener('gesturechange', blockGesture, { passive: false });
+  document.addEventListener('gestureend', blockGesture, { passive: false });
+  document.addEventListener('dblclick', blockGesture);
+
+  // Second tap inside 300ms is what Safari zooms on. preventDefault on
+  // touchend only — jump and the stick run on their own pointer handlers.
+  let lastTapAt = 0;
+  document.addEventListener('touchend', (e) => {
+    const now = Date.now();
+    if (now - lastTapAt <= 300) e.preventDefault();
+    lastTapAt = now;
+  }, { passive: false });
+
+  // Pinch-zoom. Single-finger shop scrolling stays allowed.
+  document.addEventListener('touchmove', (e) => {
+    if (e.touches.length > 1) {
+      e.preventDefault();
+      return;
+    }
+    const target = e.target;
+    if (target && target.closest && target.closest('.shop-panel')) return;
+    e.preventDefault();
+  }, { passive: false });
 }
 
 function bindPress(el, fn) {
